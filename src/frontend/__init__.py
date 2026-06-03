@@ -1,0 +1,1 @@
+"""AgroSmart Streamlit frontend package."""
