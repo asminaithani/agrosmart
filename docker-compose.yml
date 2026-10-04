@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Read from your local .env (or shell). Empty is fine: the chatbot then replies "API key missing".
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      - agro-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build: .
+    command: ["streamlit", "run", "src/frontend/app.py", "--server.address", "0.0.0.0", "--server.port", "8501", "--server.headless", "true"]
+    ports:
+      - "8501:8501"
+    environment:
+      - AGROSMART_API_BASE_URL=http://api:8000
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  agro-data:
