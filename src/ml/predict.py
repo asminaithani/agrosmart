@@ -46,14 +46,23 @@ def predict_crop_sync(user_inputs: Dict[str, Any]) -> Dict[str, Any]:
         "confidence": float(top_3_probs[0]),
         "top_crops": [{"crop": str(c), "confidence": float(p) * 100} for c, p in zip(top_3_crops, top_3_probs)],
         "feature_importances": feature_importances,
-        "model_accuracy_pct": 99.1
+        "model_accuracy_pct": artifacts.get("test_accuracy_pct", 0.0)
     }
 
 def rule_based_fallback(inputs: Dict[str, Any]) -> Dict[str, Any]:
     rain = inputs.get("rainfall", 0)
     if rain > 200:
-        return {"top_recommendation": "rice", "confidence": 0.6, "alternatives": ["sugarcane"]}
+        best, alts = "rice", ["sugarcane"]
     elif rain > 100:
-        return {"top_recommendation": "maize", "confidence": 0.6, "alternatives": ["cotton"]}
+        best, alts = "maize", ["cotton"]
     else:
-        return {"top_recommendation": "wheat", "confidence": 0.6, "alternatives": ["millet"]}
+        best, alts = "wheat", ["millet"]
+    return {
+        "top_recommendation": best,
+        "confidence": 0.6,
+        "alternatives": alts,
+        "top_crops": [{"crop": c, "confidence": p} for c, p in zip([best] + alts, [60.0, 25.0])],
+        "feature_importances": {},
+        "model_accuracy_pct": 0.0,
+        "fallback": True,
+    }

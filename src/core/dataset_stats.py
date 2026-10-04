@@ -3,8 +3,7 @@ import joblib
 import os
 import numpy as np
 
-DATASET_PATH = "crop_cleaned.xls"
-MODEL_PATH = "models/rf_crop_model.joblib"
+from src.core.config import DATA_PATH as DATASET_PATH, MODEL_PATH
 
 _cached_context = None
 

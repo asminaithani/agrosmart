@@ -2,14 +2,14 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
 class PredictionRequest(BaseModel):
-    N: float = Field(..., description="Nitrogen content in soil")
-    P: float = Field(..., description="Phosphorous content in soil")
-    K: float = Field(..., description="Potassium content in soil")
-    temperature: float = Field(..., description="Temperature in Celsius")
-    humidity: float = Field(..., description="Relative humidity in %")
-    ph: float = Field(..., description="pH value of the soil")
-    rainfall: float = Field(..., description="Rainfall in mm")
-    field_size_hectares: float = Field(1.0, description="Field size in hectares")
+    N: float = Field(..., ge=0, le=500, description="Nitrogen content in soil")
+    P: float = Field(..., ge=0, le=500, description="Phosphorous content in soil")
+    K: float = Field(..., ge=0, le=500, description="Potassium content in soil")
+    temperature: float = Field(..., ge=-10, le=60, description="Temperature in Celsius")
+    humidity: float = Field(..., ge=0, le=100, description="Relative humidity in %")
+    ph: float = Field(..., ge=0, le=14, description="pH value of the soil")
+    rainfall: float = Field(..., ge=0, le=5000, description="Rainfall in mm")
+    field_size_hectares: float = Field(1.0, gt=0, le=10000, description="Field size in hectares")
     region: str = Field("Unknown", description="Region")
     season: str = Field("Unknown", description="Season")
 

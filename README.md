@@ -1,5 +1,7 @@
 # Climate-Smart Agriculture Prediction API
 
+[![CI](https://github.com/asminaithani/agrosmart/actions/workflows/ci.yml/badge.svg)](https://github.com/asminaithani/agrosmart/actions/workflows/ci.yml)
+
 A production-ready pipeline that takes user input on soil and weather, predicts the optimal crop using a trained Random Forest model, and simultaneously calculates sustainability metrics and irrigation methods. It features a modern Streamlit frontend and an LLM-powered conversational Chatbot!
 
 ## Steps to Start and Initialize
@@ -67,3 +69,19 @@ Once the servers are running, open your web browser and navigate to:
 👉 **[http://localhost:8501](http://localhost:8501)** (Streamlit Frontend UI)
 
 *(The backend API Swagger Docs are still accessible at [http://localhost:8000/docs](http://localhost:8000/docs))*
+
+## Running the Tests
+```bash
+make train   # the API tests expect a trained model (one test is skipped without it)
+make test    # or: pytest -v
+```
+The suite covers the sustainability/irrigation pipeline, the REST API (schema, input validation, determinism, rule-based fallback when no model exists, chat without an API key) and the SQLite layer.
+
+## Prediction History (SQLite)
+Every call to `POST /api/predict` is logged to `data/agrosmart.db` (override the location with `AGROSMART_DB_PATH`). Query it through the API:
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/history?limit=10` | Most recent predictions |
+| `GET /api/stats` | Totals plus per-crop count, average confidence, rainfall and pH (SQL `GROUP BY` / `AVG`) |
+| `GET /api/health` | Health check (also available at `/health`) |

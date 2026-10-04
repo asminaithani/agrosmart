@@ -28,7 +28,7 @@ def generate_mock_data(path, num_samples=1000):
     print(f"Mock data generated at {path}")
 
 def train_model():
-    data_path = "crop_cleaned.xls"
+    data_path = DATA_PATH
     if not os.path.exists(data_path):
         raise FileNotFoundError(f"{data_path} not found!")
         
@@ -70,7 +70,8 @@ def train_model():
         "model": best_model,
         "scaler": scaler,
         "label_encoder": label_encoder,
-        "feature_names": X.columns.tolist()
+        "feature_names": X.columns.tolist(),
+        "test_accuracy_pct": round(float(acc) * 100, 2),
     }
     joblib.dump(model_artifacts, MODEL_PATH)
     print(f"Model saved to {MODEL_PATH}")

@@ -31,9 +31,23 @@ async def calculate_sustainability(crop_data: Dict[str, Any], user_inputs: Dict[
     # Energy estimate: pumping 1000L of water uses approx 0.5 kWh
     energy_saved_kwh = water_saved_liters * 0.0005
     
+    water_saved_pct = ((flood_baseline - recommended_method_usage) / flood_baseline) * 100
+
+    # Estimates: pumping energy (above) x grid emission factor, per hectare.
+    # 0.82 kg CO2/kWh is an assumed grid average; 0.17 kg CO2/km is an assumed passenger car.
+    GRID_KG_CO2_PER_KWH = 0.82
+    CAR_KG_CO2_PER_KM = 0.17
+    carbon_reduced_kg_ha = max(0.0, energy_saved_kwh / field_size_hectares) * GRID_KG_CO2_PER_KWH
+    km_not_driven = carbon_reduced_kg_ha / CAR_KG_CO2_PER_KM
+
     return {
+        "carbon_reduced_kg_ha": round(carbon_reduced_kg_ha, 2),
+        "km_not_driven": int(round(km_not_driven)),
         "sustainable_development": True,
         "carbon_footprint_reduction_pct": round(carbon_reduction_pct, 2),
+        "carbon_reduction_pct": round(carbon_reduction_pct, 2),
+        "emission_kg_per_season": sustainable_emission,
+        "water_saved_pct": round(max(0.0, water_saved_pct), 1),
         "water_saved_liters": max(0, water_saved_liters),
         "energy_saved_kwh": max(0, round(energy_saved_kwh, 2))
     }

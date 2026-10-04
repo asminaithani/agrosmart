@@ -11,3 +11,5 @@ httpx<0.28.0
 python-dotenv==1.0.1
 pytest==8.2.0
 streamlit
+requests
+pytest-asyncio==0.23.7

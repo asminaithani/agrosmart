@@ -20,7 +20,7 @@ analyze:
 	$(PYTHON) -m src.ml.analyze
 
 test:
-	$(VENV)/bin/pytest tests/
+	$(VENV)/bin/pytest -v
 
 run: run-backend run-frontend
 

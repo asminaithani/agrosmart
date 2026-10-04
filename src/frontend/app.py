@@ -211,7 +211,7 @@ def confidence_bars(top_crops):
     colors = ["#10b981", "#0ea5e9", "#f59e0b"]
     for i, crop in enumerate(top_crops):
         pct   = crop['confidence']
-        color = colors[i]
+        color = colors[i % len(colors)]
         bars_html += f"""
         <div style="margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;
@@ -233,12 +233,12 @@ def feature_importance_chart(fi: dict):
     labels = {"N":"Nitrogen","P":"Phosphorus","K":"Potassium",
               "temperature":"Temperature","humidity":"Humidity",
               "ph":"Soil pH","rainfall":"Rainfall"}
-    sorted_fi = sorted(feature_importances.items(), key=lambda x: x[1], reverse=True)
+    sorted_fi = sorted((fi or {}).items(), key=lambda x: x[1], reverse=True)
 
     if not sorted_fi:
-     st.warning("No feature importance data available")
-    return
-    max_val = sorted_fi[0][1]
+        return ('<div style="font-size:0.8rem;color:var(--text-muted)">'
+                'Feature importance unavailable (model not trained; using rule-based fallback).</div>')
+    max_val = sorted_fi[0][1] or 1.0
     bars_html = ""
     for key, val in sorted_fi:
         pct   = (val / max_val) * 100

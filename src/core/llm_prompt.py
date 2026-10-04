@@ -4,7 +4,7 @@ from groq import Groq
 from src.core.config import GROQ_API_KEY
 
 def format_response(crop: dict, sustainability: dict, irrigation: dict) -> str:
-    if not GROQ_API_KEY or GROQ_API_KEY == "your_api_key_here":
+    if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
         # Fallback if no API key
         return fallback_formatter(crop, sustainability, irrigation)
         
@@ -35,7 +35,7 @@ def format_response(crop: dict, sustainability: dict, irrigation: dict) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": json.dumps(payload)}
             ],
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             temperature=0.7,
             max_tokens=500
         )
@@ -47,7 +47,7 @@ def format_response(crop: dict, sustainability: dict, irrigation: dict) -> str:
 def fallback_formatter(crop, sustainability, irrigation) -> str:
     return f"""
 ### 🌾 Crop Recommendation: {crop['top_recommendation'].capitalize()}
-We are {int(crop['confidence']*100)}% confident in this recommendation. Alternatives: {', '.join(crop['alternatives'])}.
+We are {int(crop['confidence']*100)}% confident in this recommendation. Alternatives: {', '.join(crop.get('alternatives') or [c['crop'] for c in crop.get('top_crops', [])[1:]])}.
 
 ### 💧 Irrigation Plan: {irrigation['method']}
 This method is highly recommended for your region.
