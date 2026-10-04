@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter
 from src.api.schemas import PredictionRequest, PredictionResponse, ChatRequest, ChatResponse
 from src.pipeline.orchestrator import run_pipeline
@@ -8,6 +10,7 @@ from groq import Groq
 
 
 router = APIRouter()
+logger = logging.getLogger("agrosmart.endpoints")
 
 @router.get("/health")
 def api_health():
@@ -25,10 +28,11 @@ async def predict(request: PredictionRequest):
     field_size = user_inputs["field_size_hectares"]
     
     confidence_pct = round(crop.get("confidence", 0.0) * 100, 1)
+    logger.info("Prediction: crop=%s confidence=%.1f%% irrigation=%s", crop.get("top_recommendation"), confidence_pct, irr.get("method"))
     try:
         log_prediction(user_inputs, crop.get("top_recommendation", ""), confidence_pct, irr.get("method", ""))
     except Exception as e:  # logging must never break a prediction
-        print(f"Prediction logging failed: {e}")
+        logger.warning("Could not save prediction to the database: %s", e)
 
     return PredictionResponse(
         recommended_crop=crop.get("top_recommendation", ""),
@@ -83,4 +87,5 @@ async def chat(request: ChatRequest):
         reply = completion.choices[0].message.content or "No response generated. Please try again."
         return ChatResponse(reply=reply)
     except Exception as e:
+        logger.error("Chat request to Groq failed: %s", e)
         return ChatResponse(reply=f"Error connecting to AgroBot AI: {str(e)}")

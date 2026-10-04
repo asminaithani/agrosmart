@@ -8,7 +8,7 @@ import streamlit as st
 import time, math
 
 from mock_data import PRESETS
-from services.api_client import ApiClientError, chat, predict_crop
+from services.api_client import ApiClientError, chat, predict_crop, get_history, get_stats
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE CONFIG
@@ -331,7 +331,7 @@ with st.sidebar:
     st.markdown("<p style='color:var(--text-muted);font-size:0.7rem;margin:1.2rem 0 0.4rem;text-transform:uppercase'>Load Presets</p>", unsafe_allow_html=True)
     col_a, col_b = st.columns(2)
     rice_preset  = col_a.button("Rice",   use_container_width=True)
-    wheat_preset = col_b.button("Wheat",  use_container_width=True)
+    cotton_preset = col_b.button("Cotton", use_container_width=True)
     col_c, col_d = st.columns(2)
     mango_preset  = col_c.button("Mango",  use_container_width=True)
     maize_preset  = col_d.button("Maize",  use_container_width=True)
@@ -339,7 +339,7 @@ with st.sidebar:
 # Apply preset (rebuild sidebar values via session state workaround — use API call directly)
 preset_data = None
 if rice_preset:  preset_data = PRESETS["rice"]
-if wheat_preset: preset_data = PRESETS["wheat"]
+if cotton_preset: preset_data = PRESETS["cotton"]
 if mango_preset: preset_data = PRESETS["mango"]
 if maize_preset: preset_data = PRESETS["maize"]
 
@@ -581,6 +581,44 @@ else:
       {summary_items_html}
     </div>
     """, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PREDICTION HISTORY  (read from the backend's SQLite log)
+# ─────────────────────────────────────────────────────────────────────────────
+st.markdown("""
+<div style="
+  font-family:'Outfit',sans-serif; font-size:1.2rem; font-weight:600; color:var(--text);
+  padding:1rem 0 0.5rem; border-top:1px solid var(--border); margin-top:1rem;
+">Prediction History</div>
+<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">
+  Every analysis is saved by the backend; the chart is computed with SQL (GROUP BY).
+</div>
+""", unsafe_allow_html=True)
+
+try:
+    history_rows = get_history(10)
+    history_stats = get_stats()
+except ApiClientError as e:
+    history_rows, history_stats = [], None
+    st.caption(f"History unavailable: {e}")
+
+if history_stats is not None:
+    if not history_rows:
+        st.caption("No predictions saved yet. Run an analysis and it will appear here.")
+    else:
+        import pandas as pd
+        hist_col, stat_col = st.columns([1.6, 1])
+        with hist_col:
+            st.caption(f"Latest {len(history_rows)} of {history_stats['total_predictions']} saved predictions")
+            hist_df = pd.DataFrame(history_rows)[
+                ["created_at", "predicted_crop", "confidence_pct", "rainfall", "ph", "irrigation"]
+            ]
+            hist_df.columns = ["Time (UTC)", "Crop", "Confidence %", "Rainfall mm", "pH", "Irrigation"]
+            st.dataframe(hist_df, use_container_width=True, hide_index=True)
+        with stat_col:
+            st.caption("Predictions per crop")
+            chart_df = pd.DataFrame(history_stats["by_crop"]).set_index("crop")[["count"]]
+            st.bar_chart(chart_df)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CHATBOT SECTION

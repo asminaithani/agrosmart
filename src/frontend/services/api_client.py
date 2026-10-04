@@ -8,6 +8,8 @@ from config import (
     API_TIMEOUT_SECONDS,
     CHAT_ENDPOINT,
     HEALTH_ENDPOINT,
+    HISTORY_ENDPOINT,
+    STATS_ENDPOINT,
     PREDICT_ENDPOINT,
 )
 
@@ -79,3 +81,21 @@ def health() -> dict:
         return _json_or_error(response)
     except requests.exceptions.RequestException as exc:
         raise ApiClientError(f"Health check failed: {exc}") from exc
+
+
+def get_history(limit: int = 10) -> list:
+    """Most recent predictions saved by the backend (SQLite)."""
+    try:
+        response = requests.get(_url(HISTORY_ENDPOINT), params={"limit": limit}, timeout=API_TIMEOUT_SECONDS)
+        return _json_or_error(response)
+    except requests.exceptions.RequestException as exc:
+        raise ApiClientError(f"Could not load prediction history: {exc}") from exc
+
+
+def get_stats() -> dict:
+    """Aggregate prediction statistics computed with SQL on the backend."""
+    try:
+        response = requests.get(_url(STATS_ENDPOINT), timeout=API_TIMEOUT_SECONDS)
+        return _json_or_error(response)
+    except requests.exceptions.RequestException as exc:
+        raise ApiClientError(f"Could not load prediction statistics: {exc}") from exc

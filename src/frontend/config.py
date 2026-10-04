@@ -16,5 +16,7 @@ API_BASE_URL = os.getenv(
 PREDICT_ENDPOINT = _path_from_env("AGROSMART_PREDICT_ENDPOINT", "/api/predict")
 CHAT_ENDPOINT = _path_from_env("AGROSMART_CHAT_ENDPOINT", "/api/chat")
 HEALTH_ENDPOINT = _path_from_env("AGROSMART_HEALTH_ENDPOINT", "/api/health")
+HISTORY_ENDPOINT = _path_from_env("AGROSMART_HISTORY_ENDPOINT", "/api/history")
+STATS_ENDPOINT = _path_from_env("AGROSMART_STATS_ENDPOINT", "/api/stats")
 
 API_TIMEOUT_SECONDS = float(os.getenv("AGROSMART_API_TIMEOUT_SECONDS", "15"))

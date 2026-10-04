@@ -70,3 +70,38 @@ def test_fallback_when_model_missing(client, valid_payload, monkeypatch):
     r = client.post("/api/predict", json=valid_payload)
     assert r.status_code == 200
     assert r.json()["recommended_crop"] == "rice"  # rainfall 203 > 200
+
+
+@pytest.mark.skipif(not os.path.exists(MODEL_PATH), reason="model not trained; run `make train`")
+@pytest.mark.parametrize("name", ["rice", "cotton", "mango", "maize"])
+def test_ui_presets_predict_their_own_crop(client, name):
+    """Every preset button in the UI must be a crop the model can actually recognise."""
+    from src.frontend.mock_data import PRESETS
+    body = client.post("/api/predict", json=PRESETS[name]).json()
+    assert body["recommended_crop"] == name
+
+
+def test_unhandled_error_returns_clean_json_500(valid_payload, tmp_path, monkeypatch):
+    """An unexpected exception must not leak a stack trace to the client."""
+    from fastapi.testclient import TestClient
+    import src.api.endpoints as endpoints
+    from src.api.main import app
+
+    monkeypatch.setenv("AGROSMART_DB_PATH", str(tmp_path / "t.db"))
+
+    async def boom(_):
+        raise RuntimeError("simulated failure")
+
+    monkeypatch.setattr(endpoints, "run_pipeline", boom)
+    r = TestClient(app, raise_server_exceptions=False).post("/api/predict", json=valid_payload)
+    assert r.status_code == 500
+    assert r.json() == {"error": "Internal server error"}
+
+
+def test_requests_are_logged(client, valid_payload, caplog):
+    import logging
+    with caplog.at_level(logging.INFO):
+        client.post("/api/predict", json=valid_payload)
+    messages = " ".join(rec.getMessage() for rec in caplog.records)
+    assert "POST /api/predict -> 200" in messages
+    assert "Prediction: crop=" in messages

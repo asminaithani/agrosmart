@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 from groq import Groq
@@ -41,7 +42,7 @@ def format_response(crop: dict, sustainability: dict, irrigation: dict) -> str:
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
-        print(f"Groq API Error: {e}")
+        logging.getLogger("agrosmart.llm").error("Groq API Error: %s", e)
         return fallback_formatter(crop, sustainability, irrigation)
 
 def fallback_formatter(crop, sustainability, irrigation) -> str:

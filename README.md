@@ -85,3 +85,19 @@ Every call to `POST /api/predict` is logged to `data/agrosmart.db` (override the
 | `GET /api/history?limit=10` | Most recent predictions |
 | `GET /api/stats` | Totals plus per-crop count, average confidence, rainfall and pH (SQL `GROUP BY` / `AVG`) |
 | `GET /api/health` | Health check (also available at `/health`) |
+
+## Run with Docker
+```bash
+docker compose up --build
+```
+- Frontend: http://localhost:8501  |  API docs: http://localhost:8000/docs
+- The model is trained while the image builds, so no separate training step is needed.
+- To enable the chatbot, put `GROQ_API_KEY=...` in a local `.env` file (it is read by Compose and never copied into the image).
+- Prediction history is stored in the `agro-data` Docker volume and survives restarts.
+- CI builds the image and smoke-tests the API container on every push.
+
+## Logging
+The API logs every request (method, path, status, duration) and every prediction using Python's `logging` module. Set the level with `LOG_LEVEL` (default `INFO`). Unhandled errors are logged with a full traceback and returned to the client as a clean `{"error": "Internal server error"}` 500.
+
+## Deploying to AWS EC2
+See [DEPLOY_EC2.md](DEPLOY_EC2.md) for step-by-step instructions (Docker Compose on an Ubuntu instance).

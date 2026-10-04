@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import joblib
 import os
@@ -52,5 +53,5 @@ def get_dataset_context() -> str:
         return _cached_context
         
     except Exception as e:
-        print(f"Error loading dataset stats: {e}")
+        logging.getLogger("agrosmart.stats").error("Error loading dataset stats: %s", e)
         return "Dataset stats unavailable."

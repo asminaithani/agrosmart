@@ -3,6 +3,7 @@ import pandas as pd
 from typing import Dict, Any
 from src.core.config import MODEL_PATH
 import os
+import logging
 
 _model_cache = None
 
@@ -18,6 +19,7 @@ def predict_crop_sync(user_inputs: Dict[str, Any]) -> Dict[str, Any]:
     try:
         artifacts = load_model()
     except FileNotFoundError:
+        logging.getLogger("agrosmart.predict").warning("Model file missing; using rule-based fallback. Run `make train`.")
         # Graceful degradation: rule-based fallback
         return rule_based_fallback(user_inputs)
         
